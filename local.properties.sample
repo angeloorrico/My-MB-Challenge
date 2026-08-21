@@ -1,0 +1,8 @@
+# Copy this file to "local.properties" (which is gitignored) and fill in the values below.
+# local.properties is read by the Gradle build and never committed to version control.
+
+# Path to the Android SDK on your machine (Android Studio fills this in automatically).
+sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
+
+# CoinMarketCap Pro API key. Get one for free at https://pro.coinmarketcap.com/account
+CMC_API_KEY=your_api_key_here
