@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "My-MB-Challenge"
+
+include(":core:common")
