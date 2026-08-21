@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_no_connectivity">Sem conexão com a internet. Verifique sua rede e tente novamente.</string>
+    <string name="error_timeout">A requisição demorou demais para responder. Tente novamente.</string>
+    <string name="error_rate_limit">Limite de requisições da API foi atingido. Tente novamente em instantes.</string>
+    <string name="error_plan_restricted">Este recurso não está disponível no plano atual da API.</string>
+    <string name="error_invalid_key">Chave de API inválida ou ausente.</string>
+    <string name="error_http">Não foi possível completar a requisição (erro %1$d).</string>
+    <string name="error_parsing">Não foi possível interpretar a resposta do servidor.</string>
+    <string name="error_generic">Algo deu errado. Tente novamente.</string>
+    <string name="action_retry">Tentar novamente</string>
+    <string name="offline_banner">Sem conexão com a internet</string>
+</resources>
