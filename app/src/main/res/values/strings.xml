@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My MB Challenge</string>
+    <string name="select_exchange_placeholder">Selecione uma exchange na lista para ver os detalhes.</string>
+</resources>
