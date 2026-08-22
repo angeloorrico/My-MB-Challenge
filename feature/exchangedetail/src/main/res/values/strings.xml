@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="exchange_detail_title">Detalhes da exchange</string>
+    <string name="action_back">Voltar</string>
+    <string name="detail_id_format">ID: %1$d</string>
+    <string name="detail_maker_fee">Taxa maker</string>
+    <string name="detail_taker_fee">Taxa taker</string>
+    <string name="detail_launched">Lançamento</string>
+    <string name="detail_assets_section_title">Criptomoedas</string>
+    <string name="detail_assets_empty">Nenhuma criptomoeda associada foi divulgada por esta exchange.</string>
+</resources>
