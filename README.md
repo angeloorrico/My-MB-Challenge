@@ -60,8 +60,9 @@ mean scrolling to find it again. Purely local and offline-friendly, no network r
 
 **Adaptive layout** - on a narrow window, tapping an exchange pushes the detail screen over the
 list, with a back button. Once the window is wide enough (in practice, a phone rotated to
-landscape) it switches to list-on-the-left, detail-on-the-right instead, both visible at once.
-Rotating never re-fetches data or resets the list's scroll position either way, because the
+landscape) it switches to list-on-the-left, detail-on-the-right instead, both visible at once and
+split 40/60 so detail gets the extra room its content needs. Rotating never re-fetches data or
+resets the list's scroll position either way, because the
 exchange list's ViewModel and its scroll state are both hoisted above wherever the one-pane/
 two-pane decision gets made - see "Adaptive list-detail layout" in `docs/ARCHITECTURE.md` for
 exactly how, plus a note on why width, not orientation, is what decides the breakpoint.

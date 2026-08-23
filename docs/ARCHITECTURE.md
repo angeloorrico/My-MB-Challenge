@@ -137,6 +137,12 @@ layout, while a narrow compact window still collapses to one pane correctly. I v
 on-device: the same instrumented run screenshots two panes at 731dp-wide landscape; the default
 breakpoint doesn't.
 
+The two panes split 40/60 (list/detail) instead of evenly, via a `PaneExpansionState` anchored to
+a fixed `PaneExpansionAnchor.Proportion(0.4f)`. The list pane only needs room for compact rows -
+logo, name, volume - while the detail pane's content (description, fees, launch date, the assets
+list) benefits from the extra width. It's a fixed split, not a user-draggable divider, since a
+resizable-panes pattern fits a desktop app better than a phone rotated sideways.
+
 Two things had to hold for rotation to neither re-fetch data nor lose scroll position, given that
 the layout itself changes shape across that same rotation:
 

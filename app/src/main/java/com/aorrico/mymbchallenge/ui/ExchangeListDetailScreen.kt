@@ -15,7 +15,9 @@ import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.layout.PaneExpansionAnchor
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth
+import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,12 +53,22 @@ import kotlinx.coroutines.launch
  * plenty of phones land in the Medium class (600-840dp) once rotated to landscape - this Pixel
  * profile's landscape width is ~731dp, for instance - and the goal here is "landscape on an
  * ordinary phone shows two panes," not "only tablet-sized windows do."
+ *
+ * The two panes split 40/60 (list/detail) rather than evenly: the list pane only needs to show
+ * compact rows (logo, name, volume), while the detail pane's content - description, fees, launch
+ * date, the assets list - benefits from the extra width. This is a fixed proportion, not a
+ * user-draggable divider (no [paneExpansionDragHandle][androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold]
+ * is set), which fits a mobile-first layout better than a resizable-panes desktop pattern.
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ExchangeListDetailScreen(modifier: Modifier = Modifier) {
     val navigator = rememberListDetailPaneScaffoldNavigator<Long>(
         scaffoldDirective = calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth(currentWindowAdaptiveInfo()),
+    )
+    val paneExpansionState = rememberPaneExpansionState(
+        anchors = listOf(PaneExpansionAnchor.Proportion(LIST_PANE_PROPORTION)),
+        initialAnchoredIndex = 0,
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -77,6 +89,7 @@ fun ExchangeListDetailScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.weight(1f),
             directive = navigator.scaffoldDirective,
             value = navigator.scaffoldValue,
+            paneExpansionState = paneExpansionState,
             listPane = {
                 AnimatedPane {
                     ExchangeListRoute(
@@ -116,6 +129,9 @@ fun ExchangeListDetailScreen(modifier: Modifier = Modifier) {
         )
     }
 }
+
+/** The list pane's share of width in the two-pane layout; the detail pane takes the rest. */
+private const val LIST_PANE_PROPORTION = 0.4f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
