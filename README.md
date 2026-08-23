@@ -93,6 +93,14 @@ exactly how, plus a note on why width, not orientation, is what decides the brea
 - Rotation and process death: the paged list is cached in the ViewModel
   (`cachedIn(viewModelScope)`) and survives configuration changes without re-fetching.
 
+## Accessibility
+
+Some accessibility support is in place - decorative icons are hidden from screen readers
+(`contentDescription = null`), list rows expose a single merged, human-readable description
+instead of reading each field separately, and every label goes through `stringResource` rather
+than being hardcoded. It's not a full accessibility pass, though - things like live-region
+announcements and explicit heading semantics aren't there yet.
+
 ## Project structure
 
 ```
