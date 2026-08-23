@@ -4,6 +4,18 @@ Android app for the [Mercado Bitcoin "Quero ser MB" challenge](https://github.co
 browse cryptocurrency exchanges from the CoinMarketCap API and drill into one exchange's details,
 including the cryptocurrencies it reports holding.
 
+<p align="center">
+  <img src="docs/images/screenshot-list.png" width="220" alt="Listing screen with the recently-viewed shortcut row" />
+  &nbsp;&nbsp;
+  <img src="docs/images/screenshot-detail.png" width="220" alt="Exchange detail screen" />
+</p>
+<p align="center">
+  <img src="docs/images/screenshot-tablet-landscape.png" width="420" alt="Adaptive two-pane layout, tablet landscape" />
+</p>
+<p align="center">
+  <img src="docs/images/screenshot-tablet-portrait.png" width="260" alt="Adaptive two-pane layout, tablet portrait - width, not orientation, decides the breakpoint" />
+</p>
+
 ## Stack
 
 Kotlin · Jetpack Compose · Clean Architecture (multi-module) · MVVM · Hilt · Retrofit + Moshi ·
@@ -116,3 +128,5 @@ feature/exchangelist/       Listing screen
 feature/exchangedetail/     Detail screen
 docs/                       Architecture notes
 ```
+**PS:** I do not have Mercado Bitcoin image rights. I used the company's logo just as the app icon 
+and for the scope of this challenge only.
