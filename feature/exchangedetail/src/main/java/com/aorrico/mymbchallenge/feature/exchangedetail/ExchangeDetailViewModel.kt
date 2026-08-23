@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.aorrico.mymbchallenge.core.common.connectivity.ConnectivityObserver
 import com.aorrico.mymbchallenge.core.common.error.AppError
 import com.aorrico.mymbchallenge.core.common.result.AppResult
+import com.aorrico.mymbchallenge.domain.model.ExchangeDetail
+import com.aorrico.mymbchallenge.domain.model.RecentlyViewedExchange
 import com.aorrico.mymbchallenge.domain.usecase.GetExchangeAssetsUseCase
 import com.aorrico.mymbchallenge.domain.usecase.GetExchangeDetailUseCase
+import com.aorrico.mymbchallenge.domain.usecase.RecordExchangeViewedUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 /**
  * [exchangeId] is an assisted parameter instead of a nav-graph
@@ -31,6 +35,7 @@ class ExchangeDetailViewModel @AssistedInject constructor(
     @Assisted private val exchangeId: Long,
     private val getExchangeDetailUseCase: GetExchangeDetailUseCase,
     private val getExchangeAssetsUseCase: GetExchangeAssetsUseCase,
+    private val recordExchangeViewedUseCase: RecordExchangeViewedUseCase,
     connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
 
@@ -67,12 +72,24 @@ class ExchangeDetailViewModel @AssistedInject constructor(
         _uiState.update { it.copy(info = InfoState.Loading) }
         viewModelScope.launch {
             val newInfoState = when (val result = getExchangeDetailUseCase(exchangeId)) {
-                is AppResult.Success -> InfoState.Success(result.data)
+                is AppResult.Success -> {
+                    // Recorded on a successful load, not on tap - a view that never actually
+                    // rendered anything (offline, bad id) shouldn't show up as "recently viewed".
+                    recordExchangeViewedUseCase(result.data.toRecentlyViewed())
+                    InfoState.Success(result.data)
+                }
                 is AppResult.Error -> InfoState.Error(result.error)
             }
             _uiState.update { it.copy(info = newInfoState) }
         }
     }
+
+    private fun ExchangeDetail.toRecentlyViewed() = RecentlyViewedExchange(
+        exchangeId = id,
+        name = name,
+        logoUrl = logoUrl,
+        viewedAt = Instant.now(),
+    )
 
     private fun loadAssets() {
         _uiState.update { it.copy(assets = AssetsState.Loading) }

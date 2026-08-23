@@ -41,7 +41,9 @@ import com.aorrico.mymbchallenge.core.ui.components.FullScreenError
 import com.aorrico.mymbchallenge.core.ui.components.FullScreenLoading
 import com.aorrico.mymbchallenge.core.ui.error.toDisplayMessage
 import com.aorrico.mymbchallenge.domain.model.Exchange
+import com.aorrico.mymbchallenge.domain.model.RecentlyViewedExchange
 import com.aorrico.mymbchallenge.feature.exchangelist.components.ExchangeListItem
+import com.aorrico.mymbchallenge.feature.exchangelist.components.RecentlyViewedRow
 
 /**
  * @param listState hoist this from a caller that needs the scroll position to survive beyond
@@ -61,6 +63,17 @@ fun ExchangeListRoute(
     viewModel: ExchangeListViewModel = hiltViewModel(),
 ) {
     val exchanges = viewModel.exchanges.collectAsLazyPagingItems()
+    val recentlyViewed by viewModel.recentlyViewed.collectAsState()
+
+    // A newly-viewed exchange prepends a row to the LazyColumn, but LazyColumn keeps whatever was
+    // already on screen pinned in place - so the new row ends up scrolled above the fold instead
+    // of visible. Nudge back to the top when that happens, but only if the user hadn't scrolled
+    // away already (don't yank their position around mid-browse).
+    LaunchedEffect(recentlyViewed.firstOrNull()?.exchangeId) {
+        if (recentlyViewed.isNotEmpty() && listState.firstVisibleItemIndex <= 1) {
+            listState.scrollToItem(0)
+        }
+    }
 
     // Paging's retry() lives on LazyPagingItems, which only exists here in the UI layer - the
     // ViewModel just exposes raw connectivity state. Only reacting to the false->true edge (not
@@ -87,6 +100,8 @@ fun ExchangeListRoute(
         ExchangeListContent(
             exchanges = exchanges,
             onExchangeClick = { onExchangeClick(it.id) },
+            recentlyViewed = recentlyViewed,
+            onRecentlyViewedClick = onExchangeClick,
             listState = listState,
             selectedExchangeId = selectedExchangeId,
             modifier = Modifier.padding(padding),
@@ -99,6 +114,8 @@ internal fun ExchangeListContent(
     exchanges: LazyPagingItems<Exchange>,
     onExchangeClick: (Exchange) -> Unit,
     modifier: Modifier = Modifier,
+    recentlyViewed: List<RecentlyViewedExchange> = emptyList(),
+    onRecentlyViewedClick: (Long) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     selectedExchangeId: Long? = null,
 ) {
@@ -126,6 +143,16 @@ internal fun ExchangeListContent(
 
         else -> {
             LazyColumn(modifier = modifier.fillMaxSize(), state = listState) {
+                if (recentlyViewed.isNotEmpty()) {
+                    item(key = "recently_viewed") {
+                        RecentlyViewedRow(
+                            exchanges = recentlyViewed,
+                            onExchangeClick = onRecentlyViewedClick,
+                        )
+                        HorizontalDivider()
+                    }
+                }
+
                 items(
                     count = exchanges.itemCount,
                     key = exchanges.itemKey { it.id },

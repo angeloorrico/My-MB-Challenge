@@ -7,7 +7,8 @@ including the cryptocurrencies it reports holding.
 ## Stack
 
 Kotlin · Jetpack Compose · Clean Architecture (multi-module) · MVVM · Hilt · Retrofit + Moshi ·
-Paging 3 · Coroutines/Flow · JUnit4 + MockK + Truth · Compose UI testing · Chucker (debug builds)
+Paging 3 · Room · Coroutines/Flow · JUnit4 + MockK + Truth · Compose UI testing ·
+Chucker (debug builds)
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the module graph, the reasoning behind the
 API access pattern, and the error-handling/testing strategy.
@@ -53,6 +54,10 @@ cryptocurrencies the exchange reports in its proof-of-reserve wallets (name + US
 exchange record and the asset list load independently and can fail/retry independently too, so a
 slow or failing assets request never blanks out exchange info that already loaded fine.
 
+**Recently viewed** - the last 5 exchanges you successfully opened are persisted locally with Room
+and shown as a shortcut row above the list, so getting back to one you already looked at doesn't
+mean scrolling to find it again. Purely local and offline-friendly, no network round trip.
+
 **Adaptive layout** - on a narrow window, tapping an exchange pushes the detail screen over the
 list, with a back button. Once the window is wide enough (in practice, a phone rotated to
 landscape) it switches to list-on-the-left, detail-on-the-right instead, both visible at once.
@@ -95,7 +100,7 @@ core/common/               AppResult, AppError, DispatcherProvider - pure Kotlin
 core/network/               Retrofit/OkHttp/Moshi client, API key wiring
 core/ui/                    Compose theme, shared state composables, formatters
 domain/                     Models, repository interface, use cases - pure Kotlin
-data/                       DTOs, CoinMarketCap API, mappers, paging, repository impl
+data/                       DTOs, CoinMarketCap API, mappers, paging, repository impl, Room DB
 feature/exchangelist/       Listing screen
 feature/exchangedetail/     Detail screen
 docs/                       Architecture notes
