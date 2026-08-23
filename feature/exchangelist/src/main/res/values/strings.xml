@@ -3,4 +3,5 @@
     <string name="exchange_list_title">Exchanges</string>
     <string name="exchange_list_empty">Nenhuma exchange encontrada.</string>
     <string name="recently_viewed_title">Vistas recentemente</string>
+    <string name="recently_viewed_empty">Nenhuma exchange vista ainda.</string>
 </resources>

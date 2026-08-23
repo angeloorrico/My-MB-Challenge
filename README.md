@@ -56,7 +56,9 @@ slow or failing assets request never blanks out exchange info that already loade
 
 **Recently viewed** - the last 5 exchanges you successfully opened are persisted locally with Room
 and shown as a shortcut row above the list, so getting back to one you already looked at doesn't
-mean scrolling to find it again. Purely local and offline-friendly, no network round trip.
+mean scrolling to find it again. Purely local and offline-friendly, no network round trip - the
+row stays visible (with its own empty state) even while the exchange list itself is loading, has
+failed, or has nothing to show.
 
 **Adaptive layout** - on a narrow window, tapping an exchange pushes the detail screen over the
 list, with a back button. Once the window is wide enough (in practice, a phone rotated to

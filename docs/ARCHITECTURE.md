@@ -185,20 +185,19 @@ tap - an id that 404s or a load that fails offline was never really "viewed."
 `WhileSubscribed`, because the query is cheap and the row should already be right the moment the
 list screen composes - not delayed behind a subscription handshake.
 
-Room's `Flow`-returning queries are reactive on their own - the same `AppDatabase` singleton is
-injected into both the writer and the reader, so a write from the detail screen invalidates the
-list screen's already-active collector automatically. But reactive isn't the same as visible. The
-first on-device run of this feature turned up a real bug: recording a view correctly updated
-`ExchangeListViewModel.recentlyViewed`, and `ExchangeListRoute` correctly recomposed with the new
-data (I confirmed both with logging), and yet the shortcut row just never showed up after
-navigating back from the detail pane. Turned out to be `LazyColumn`'s scroll-position
-preservation: prepending a new item (the shortcut row) to the list, while whatever was already
-visible keeps its own key, makes `LazyListState` hold that pre-existing key at the same viewport
-offset - which pushes the newly-inserted row above the fold instead of revealing it.
-`ExchangeListRoute` (`feature/exchangelist/ExchangeListScreen.kt`) now scrolls back to index 0
-when the most-recently-viewed exchange's id changes, but only if the list was already near the top
-(`listState.firstVisibleItemIndex <= 1`) - so scrolling deep into the list on purpose doesn't get
-yanked back up by an unrelated background write.
+`RecentlyViewedRow` (`feature/exchangelist/components/RecentlyViewedRow.kt`) renders its own empty
+state ("Nenhuma exchange vista ainda.") rather than disappearing when there's nothing to show, and
+`ExchangeListContent` hoists it above the `LazyColumn` entirely instead of making it the
+`LazyColumn`'s first item. Both choices trace back to the same on-device bug: the row used to live
+inside the `LazyColumn`, conditionally, only once there was at least one entry. The first ever
+recorded view correctly updated `ExchangeListViewModel.recentlyViewed` and correctly recomposed
+the screen (confirmed with logging), and yet the row never appeared - `LazyColumn`'s scroll-position
+preservation kept whatever was already on screen pinned at the same viewport offset when the row
+was inserted as a brand-new item, pushing it above the fold instead of revealing it. Since
+`recentlyViewed` is purely local data with nothing to do with the paginated list's network state,
+the real fix was to stop tying its visibility to the `LazyColumn`'s item stream at all: it's now a
+fixed header above the list (and above the list's own loading/error/empty states too), so there's
+no insertion for `LazyColumn` to preserve scroll position around in the first place.
 
 ## Testing strategy
 
