@@ -5,10 +5,13 @@ import com.aorrico.mymbchallenge.core.common.error.AppError
 import com.aorrico.mymbchallenge.core.common.result.AppResult
 import com.aorrico.mymbchallenge.domain.model.CryptoAsset
 import com.aorrico.mymbchallenge.domain.model.ExchangeDetail
+import com.aorrico.mymbchallenge.domain.model.RecentlyViewedExchange
 import com.aorrico.mymbchallenge.domain.usecase.GetExchangeAssetsUseCase
 import com.aorrico.mymbchallenge.domain.usecase.GetExchangeDetailUseCase
+import com.aorrico.mymbchallenge.domain.usecase.RecordExchangeViewedUseCase
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +26,7 @@ class ExchangeDetailViewModelTest {
 
     private val getExchangeDetailUseCase: GetExchangeDetailUseCase = mockk()
     private val getExchangeAssetsUseCase: GetExchangeAssetsUseCase = mockk()
+    private val recordExchangeViewedUseCase: RecordExchangeViewedUseCase = mockk(relaxed = true)
 
     private val detail = ExchangeDetail(
         id = 24,
@@ -45,6 +49,7 @@ class ExchangeDetailViewModelTest {
             id,
             getExchangeDetailUseCase,
             getExchangeAssetsUseCase,
+            recordExchangeViewedUseCase,
             connectivityObserver,
         )
     }
@@ -92,6 +97,30 @@ class ExchangeDetailViewModelTest {
 
         assertThat(state.info).isInstanceOf(InfoState.Error::class.java)
         assertThat(state.assets).isEqualTo(AssetsState.Success(emptyList()))
+    }
+
+    @Test
+    fun `records a view only when info loads successfully`() = runTest {
+        coEvery { getExchangeDetailUseCase(24) } returns AppResult.Success(detail)
+        coEvery { getExchangeAssetsUseCase(24) } returns AppResult.Success(emptyList())
+
+        viewModel()
+
+        coVerify(exactly = 1) {
+            recordExchangeViewedUseCase(
+                match<RecentlyViewedExchange> { it.exchangeId == 24L && it.name == "Kraken" && it.logoUrl == null },
+            )
+        }
+    }
+
+    @Test
+    fun `does not record a view when info fails to load`() = runTest {
+        coEvery { getExchangeDetailUseCase(24) } returns AppResult.Error(AppError.NoConnectivity())
+        coEvery { getExchangeAssetsUseCase(24) } returns AppResult.Success(emptyList())
+
+        viewModel()
+
+        coVerify(exactly = 0) { recordExchangeViewedUseCase(any()) }
     }
 
     @Test

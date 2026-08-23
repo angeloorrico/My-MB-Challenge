@@ -20,7 +20,8 @@ app  ─────────────┬─> feature:exchangelist ─┐
   logo-with-fallback image component, and the formatters. Both feature modules depend on it; it
   depends on nothing feature-specific.
 - **`data`** implements `domain`'s repository interfaces against CoinMarketCap - paging, error
-  normalization, all of it.
+  normalization, all of it - and also owns the app's only local persistence, a small Room database
+  for recently-viewed exchanges (see below).
 - **`feature:exchangelist`** and **`feature:exchangedetail`** are self-contained: each exposes one
   `@Composable ...Route` and doesn't know the other exists. `app` is the only module that wires
   them together (see "Adaptive list-detail layout"), so neither feature depends on the other.
@@ -161,12 +162,50 @@ instance, currently returns `"data": []` from `/v1/exchange/assets`, confirmed l
 from `AssetsState.Error` on purpose, so a legitimately empty response never gets mistaken for (or
 coded as) a failure.
 
+### Recently-viewed exchanges
+
+A small Room database (`data/local/AppDatabase.kt`, one table) persists the last 5 exchanges the
+user successfully opened, shown as a horizontal shortcut row above the paginated list. It's
+local-only and lives apart from `ExchangeRepository` on purpose: `RecentlyViewedRepository` and
+`RecentlyViewedExchangeDao` have nothing to do with CoinMarketCap, and the fields they persist
+(`exchangeId`, `name`, `logoUrl`, `viewedAt`) are just what a shortcut row needs to render.
+Anything volatile, like spot volume, is left out so this table never turns into a second, staler
+source of truth for data the network already owns.
+
+A view gets recorded in `ExchangeDetailViewModel.loadInfo()` only on a successful load, not on
+tap - an id that 404s or a load that fails offline was never really "viewed."
+`ExchangeListViewModel` exposes the DAO's `Flow` as
+`stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())`, eager rather than
+`WhileSubscribed`, because the query is cheap and the row should already be right the moment the
+list screen composes - not delayed behind a subscription handshake.
+
+Room's `Flow`-returning queries are reactive on their own - the same `AppDatabase` singleton is
+injected into both the writer and the reader, so a write from the detail screen invalidates the
+list screen's already-active collector automatically. But reactive isn't the same as visible. The
+first on-device run of this feature turned up a real bug: recording a view correctly updated
+`ExchangeListViewModel.recentlyViewed`, and `ExchangeListRoute` correctly recomposed with the new
+data (I confirmed both with logging), and yet the shortcut row just never showed up after
+navigating back from the detail pane. Turned out to be `LazyColumn`'s scroll-position
+preservation: prepending a new item (the shortcut row) to the list, while whatever was already
+visible keeps its own key, makes `LazyListState` hold that pre-existing key at the same viewport
+offset - which pushes the newly-inserted row above the fold instead of revealing it.
+`ExchangeListRoute` (`feature/exchangelist/ExchangeListScreen.kt`) now scrolls back to index 0
+when the most-recently-viewed exchange's id changes, but only if the list was already near the top
+(`listState.firstVisibleItemIndex <= 1`) - so scrolling deep into the list on purpose doesn't get
+yanked back up by an unrelated background write.
+
 ## Testing strategy
 
 - **Unit tests** (`src/test`, plain JUnit4 + MockK + Truth + kotlinx-coroutines-test): mappers,
   `SafeApiCallExecutor` (against a real Retrofit stack via MockWebServer, rather than hand-built
-  `HttpException`s), `ExchangePagingSource`, `ExchangeRepositoryImpl`, both ViewModels, and the
-  domain use cases.
+  `HttpException`s), `ExchangePagingSource`, `ExchangeRepositoryImpl`,
+  `RecentlyViewedRepositoryImpl` (against a mocked DAO), both ViewModels, and the domain use
+  cases.
+- **Room DAO tests** (`data/src/androidTest`, real device/emulator): `RecentlyViewedExchangeDaoTest`
+  runs against an in-memory Room database (`Room.inMemoryDatabaseBuilder`) instead of a mocked
+  DAO, because what's actually worth testing here - upsert-on-conflict replacing instead of
+  duplicating a row, ordering by `viewedAtEpochMillis DESC`, the prune-to-limit query - is real SQL
+  behavior that a mock just can't stand in for.
 - **UI tests** (`src/androidTest`, Compose UI testing + JUnit4): each feature's screen content is
   split into a small, ViewModel-free `internal` composable (`ExchangeListContent`,
   `ExchangeDetailContent`) that takes plain state as parameters. Tests feed it fake
