@@ -128,5 +128,8 @@ feature/exchangelist/       Listing screen
 feature/exchangedetail/     Detail screen
 docs/                       Architecture notes
 ```
-**PS:** I do not have Mercado Bitcoin image rights. I used the company's logo just as the app icon 
+**PS 1:** I used Claude Code to generate part of the documentation of the project, as well as part 
+of this Readme and Architecture files.
+
+**PS 2:** I do not have Mercado Bitcoin image rights. I used the company's logo just as the app icon 
 and for the scope of this challenge only.
