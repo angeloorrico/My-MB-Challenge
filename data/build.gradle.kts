@@ -11,6 +11,7 @@ android {
 
     defaultConfig {
         minSdk = 26
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -35,6 +36,10 @@ dependencies {
     implementation(libs.paging.runtime)
     implementation(libs.paging.common)
 
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
@@ -47,4 +52,10 @@ dependencies {
     testImplementation(libs.paging.testing)
     testImplementation(libs.retrofit.converter.moshi)
     testImplementation(libs.okhttp.mockwebserver)
+
+    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.truth)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }
