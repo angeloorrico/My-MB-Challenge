@@ -24,6 +24,8 @@ import com.aorrico.mymbchallenge.domain.model.RecentlyViewedExchange
 import com.aorrico.mymbchallenge.feature.exchangelist.R
 import java.time.Instant
 
+/** Always shown, even with an empty [exchanges] list, so the shortcut's presence is predictable
+ *  instead of the list reflowing/jumping the moment the first view gets recorded. */
 @Composable
 fun RecentlyViewedRow(
     exchanges: List<RecentlyViewedExchange>,
@@ -37,16 +39,25 @@ fun RecentlyViewedRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            items(count = exchanges.size, key = { exchanges[it].exchangeId }) { index ->
-                val exchange = exchanges[index]
-                RecentlyViewedItem(
-                    exchange = exchange,
-                    onClick = { onExchangeClick(exchange.exchangeId) },
-                )
+        if (exchanges.isEmpty()) {
+            Text(
+                text = stringResource(R.string.recently_viewed_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                items(count = exchanges.size, key = { exchanges[it].exchangeId }) { index ->
+                    val exchange = exchanges[index]
+                    RecentlyViewedItem(
+                        exchange = exchange,
+                        onClick = { onExchangeClick(exchange.exchangeId) },
+                    )
+                }
             }
         }
     }
@@ -86,5 +97,13 @@ private fun RecentlyViewedRowPreview() {
             ),
             onExchangeClick = {},
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RecentlyViewedRowEmptyPreview() {
+    MyMbChallengeTheme {
+        RecentlyViewedRow(exchanges = emptyList(), onExchangeClick = {})
     }
 }

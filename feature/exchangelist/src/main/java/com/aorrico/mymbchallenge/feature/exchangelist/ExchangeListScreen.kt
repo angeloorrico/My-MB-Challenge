@@ -65,16 +65,6 @@ fun ExchangeListRoute(
     val exchanges = viewModel.exchanges.collectAsLazyPagingItems()
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
 
-    // A newly-viewed exchange prepends a row to the LazyColumn, but LazyColumn keeps whatever was
-    // already on screen pinned in place - so the new row ends up scrolled above the fold instead
-    // of visible. Nudge back to the top when that happens, but only if the user hadn't scrolled
-    // away already (don't yank their position around mid-browse).
-    LaunchedEffect(recentlyViewed.firstOrNull()?.exchangeId) {
-        if (recentlyViewed.isNotEmpty() && listState.firstVisibleItemIndex <= 1) {
-            listState.scrollToItem(0)
-        }
-    }
-
     // Paging's retry() lives on LazyPagingItems, which only exists here in the UI layer - the
     // ViewModel just exposes raw connectivity state. Only reacting to the false->true edge (not
     // every recomposition where isConnected happens to be true) avoids retrying a load that
@@ -121,55 +111,53 @@ internal fun ExchangeListContent(
 ) {
     val refreshState = exchanges.loadState.refresh
 
-    when {
-        refreshState is LoadState.Loading && exchanges.itemCount == 0 -> {
-            FullScreenLoading(modifier = modifier.fillMaxSize())
-        }
+    // recentlyViewed is purely local (Room), independent of the exchange list's network state, so
+    // it's hoisted above the loading/error/empty branches below instead of living inside the
+    // LazyColumn - it stays visible no matter what the paginated list is doing.
+    Column(modifier = modifier.fillMaxSize()) {
+        RecentlyViewedRow(exchanges = recentlyViewed, onExchangeClick = onRecentlyViewedClick)
+        HorizontalDivider()
 
-        refreshState is LoadState.Error && exchanges.itemCount == 0 -> {
-            FullScreenError(
-                message = refreshState.error.toAppError().toDisplayMessage(),
-                onRetry = { exchanges.retry() },
-                modifier = modifier.fillMaxSize(),
-            )
-        }
+        when {
+            refreshState is LoadState.Loading && exchanges.itemCount == 0 -> {
+                FullScreenLoading(modifier = Modifier.weight(1f).fillMaxWidth())
+            }
 
-        refreshState is LoadState.NotLoading && exchanges.itemCount == 0 -> {
-            FullScreenEmpty(
-                message = stringResource(R.string.exchange_list_empty),
-                modifier = modifier.fillMaxSize(),
-            )
-        }
+            refreshState is LoadState.Error && exchanges.itemCount == 0 -> {
+                FullScreenError(
+                    message = refreshState.error.toAppError().toDisplayMessage(),
+                    onRetry = { exchanges.retry() },
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                )
+            }
 
-        else -> {
-            LazyColumn(modifier = modifier.fillMaxSize(), state = listState) {
-                if (recentlyViewed.isNotEmpty()) {
-                    item(key = "recently_viewed") {
-                        RecentlyViewedRow(
-                            exchanges = recentlyViewed,
-                            onExchangeClick = onRecentlyViewedClick,
-                        )
-                        HorizontalDivider()
+            refreshState is LoadState.NotLoading && exchanges.itemCount == 0 -> {
+                FullScreenEmpty(
+                    message = stringResource(R.string.exchange_list_empty),
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                )
+            }
+
+            else -> {
+                LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth(), state = listState) {
+                    items(
+                        count = exchanges.itemCount,
+                        key = exchanges.itemKey { it.id },
+                    ) { index ->
+                        val exchange = exchanges[index]
+                        if (exchange != null) {
+                            ExchangeListItem(
+                                exchange = exchange,
+                                onClick = onExchangeClick,
+                                selected = exchange.id == selectedExchangeId,
+                            )
+                            HorizontalDivider()
+                        }
                     }
-                }
 
-                items(
-                    count = exchanges.itemCount,
-                    key = exchanges.itemKey { it.id },
-                ) { index ->
-                    val exchange = exchanges[index]
-                    if (exchange != null) {
-                        ExchangeListItem(
-                            exchange = exchange,
-                            onClick = onExchangeClick,
-                            selected = exchange.id == selectedExchangeId,
-                        )
-                        HorizontalDivider()
+                    item {
+                        AppendStateFooter(loadState = exchanges.loadState.append, onRetry = { exchanges.retry() })
                     }
-                }
-
-                item {
-                    AppendStateFooter(loadState = exchanges.loadState.append, onRetry = { exchanges.retry() })
                 }
             }
         }
