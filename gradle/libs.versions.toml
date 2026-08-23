@@ -15,8 +15,10 @@ activityCompose = "1.9.3"
 material3Adaptive = "1.2.0"
 
 paging = "3.3.4"
+room = "2.8.4"
 
 androidxTestExt = "1.2.1"
+androidxTestRunner = "1.7.0"
 
 retrofit = "2.11.0"
 okhttp = "4.12.0"
@@ -64,6 +66,11 @@ paging-compose = { group = "androidx.paging", name = "paging-compose", version.r
 paging-testing = { group = "androidx.paging", name = "paging-testing", version.ref = "paging" }
 
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
