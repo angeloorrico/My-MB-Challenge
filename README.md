@@ -16,6 +16,12 @@ including the cryptocurrencies it reports holding.
   <img src="docs/images/screenshot-tablet-portrait.png" width="260" alt="Adaptive two-pane layout, tablet portrait - width, not orientation, decides the breakpoint" />
 </p>
 
+**OBS 1:** I used Claude Code to generate part of the documentation of the project, as well as part
+of this Readme and Architecture files.
+
+**OBS 2:** I do not have Mercado Bitcoin image rights. I used the company's logo just as the app icon
+and for the scope of this challenge only.
+
 ## Stack
 
 Kotlin · Jetpack Compose · Clean Architecture (multi-module) · MVVM · Hilt · Retrofit + Moshi ·
@@ -48,6 +54,11 @@ Debug builds include [Chucker](https://github.com/ChuckerTeam/chucker): every re
 (headers, body, timing) gets captured and is browsable on-device via a persistent notification, no
 proxy or cable needed. Release builds pull in `chucker:library-no-op` instead - same API, empty
 implementation - so no HTTP inspection code or UI ships in release at all, not just disabled.
+
+On Android 13+, that notification needs the runtime `POST_NOTIFICATIONS` permission, which the app
+requests on first launch (debug builds only). If you deny it, Chucker still captures everything in
+the background - you just won't get the notification shortcut, and can instead reach its UI by
+granting the permission later in the system app settings.
 
 ## Running tests
 
@@ -128,8 +139,3 @@ feature/exchangelist/       Listing screen
 feature/exchangedetail/     Detail screen
 docs/                       Architecture notes
 ```
-**PS 1:** I used Claude Code to generate part of the documentation of the project, as well as part 
-of this Readme and Architecture files.
-
-**PS 2:** I do not have Mercado Bitcoin image rights. I used the company's logo just as the app icon 
-and for the scope of this challenge only.
